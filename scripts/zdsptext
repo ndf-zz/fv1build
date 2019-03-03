@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+# --
+# 2018 Nathan Fraser <ndf@metarace.com.au>
+#
+# To the extent possible under law, the author(s) have dedicated
+# all copyright and related and neighboring rights to this software
+# to the public domain worldwide. This software is distributed
+# without any warranty.
+#
+# You should have received a copy of the CC0 Public Domain Dedication
+# along with this software. If not, see:
+#
+#   http://creativecommons.org/publicdomain/zero/1.0/
+# --
+import sys
+import os
+import re
+
+# Read an FV-1 program source and try to extract the title
+# and pot values, then output a zDSP display binary fragment
+
+# Latin 1 provides a dodgey pass-through of the addressable chars
+ENCODING = 'latin_1'
+
+# check cmd line
+if len(sys.argv) != 3:
+    print('Usage: ' + sys.argv[0] + ' infile outfile')
+    sys.exit(-1)
+infile = sys.argv[1]
+outfile = sys.argv[2]
+
+# prepare output buffer
+ob = bytearray(0x30)
+
+# init all values to 0xff
+oft = 0
+while oft < 0x30:
+    ob[oft] = 0xff 
+    oft += 1
+
+# program variables
+progno = 0
+progname = ''
+pot0 = ''
+pot1 = ''
+pot2 = ''
+
+# extract progno and name from filename
+srcname = os.path.basename(infile)
+nprogno,sep,rem = srcname.partition('_')
+if nprogno.isdigit():
+    progno = int(nprogno)
+progname = rem.strip().replace('.asm','').replace('_', ' ')[0:18]
+
+# then extract better info from source file
+with open(infile,'r') as f:
+    for l in f:
+        if 'Program' in l:
+            m = re.match('^;\s+Program.*?:(.*)$',l)
+            if m is not None:
+                progname = m.group(1).strip()[0:18]
+        elif 'POT' in l:
+            m = re.match('^;\s+POT([012]).*?:(.*)$',l)
+            if m is not None:
+                potno = int(m.group(1))
+                pottxt = m.group(2).lstrip()[0:8].rstrip().upper()
+                if potno == 0:
+                    pot0 = pottxt
+                elif potno == 1:
+                    pot1 = pottxt
+                elif potno == 2:
+                    pot2 = pottxt
+
+topline = ' <{0:01d}>- '.format(progno) + progname.center(18)
+botline = pot0.ljust(8) + pot1.center(8) + pot2.rjust(8)
+oft = 0
+for l in [topline, botline]:
+    b = l.encode(ENCODING)
+    if len(b) != 24:
+        print('Malformed line: ' + repr(l))
+    #rl = '{0:03X}\t'.format(oft)
+    lof = 0
+    for c in b:
+        ob[oft + lof] = c
+        #rl += '{0:02X}'.format(c)
+        lof += 1
+        if lof > 24:
+            break
+            print('Long line: ' + repr(l))
+    oft += 24
+with open(outfile,'wb') as f:
+    f.write(ob)

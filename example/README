@@ -1,0 +1,48 @@
+FV-1 Testing Programs
+
+Bank A
+
+Programs 0-4 check immediate loading and ACC to DAC correspondence
+Programs 5-7 check some initial conditions
+
+Program 0: Output 0
+	- write 0x000000 to DACL
+	- what does DAC output when 0 is written?
+	PASS: DAC 0 output is 1.662V
+
+Program 1: Output Max
+	- write 0x7fffff to DACL
+	- what does DAC output when a maximum value is written?
+	PASS: DAC max output is 3.035V
+
+Program 2: Output Min
+	- write 0x800000 to DACL
+	- what does DAC output when a minimum value is written?
+	PASS: DAC min output is 0.289V
+
+Program 3: ACC->REG->ACC
+	- copy immediate values between ACC and REG and compare
+	- are 24 bit values preserved on copy in and out of REG?
+	PASS: 24bit values copy in and out of reg
+
+Program 4: ACC Range Check
+	- output sawtooth wave using full ACC width
+	- how does ACC handle minimum changes at output?
+	PASS: output rises steadily and matches expected waveform
+	SCOPE: scope_a_4.png
+
+Program 5: PACC initial value
+	- store PACC then output stored value
+	- what value does PACC hold on program load?
+	PASS: PACC is initialised with 0
+
+Program 6: ACC initial value
+	- store ACC then output stored value
+	- also store ADCL into delay for next test
+	- what value does ACC hold on program load?
+	PASS: ACC is initialised with 0
+
+Program 7: delay ram initial content
+	- write out delay ram
+	- what values are in delay ram on program load?
+	PASS: delay ram is initialised with 0

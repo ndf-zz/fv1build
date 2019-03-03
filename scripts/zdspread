@@ -1,0 +1,74 @@
+#!/usr/bin/python3
+# --
+# 2018 Nathan Fraser <ndf@metarace.com.au>
+#
+# To the extent possible under law, the author(s) have dedicated
+# all copyright and related and neighboring rights to this software
+# to the public domain worldwide. This software is distributed
+# without any warranty.
+#
+# You should have received a copy of the CC0 Public Domain Dedication
+# along with this software. If not, see:
+#
+#   http://creativecommons.org/publicdomain/zero/1.0/
+# --
+#
+# read out zdsp card content
+#
+# Requires access to cycfx2prog for programming DSP and
+# pk2cmd for reading the text eeprom via pickit2
+#
+
+##
+# Configuration
+SPINFW = '/usr/local/share/spindev.hex'	# set location of cypress firmware
+VID = 0x04b4				# USB vendor ID
+PID = 0x8613				# USB product ID
+CYPRESSCMD = ['cycfx2prog',
+              '-id={0:04X}.{1:04X}'.format(VID,PID),
+              'prg:{}'.format(SPINFW),
+              'run']
+PKCMD = ['pk2cmd', '-B/usr/local/share', '-P25LC040A']
+# End of Configuration
+##
+
+import os
+import sys
+import subprocess
+import usb.core
+import usb.util
+
+# Check command line
+if len(sys.argv) != 3:
+    print('Usage: ' + sys.argv[0] + ' display.bin dsp.bin')
+    sys.exit(1)
+
+# Step 1: Prepare cypress chip for upload
+subprocess.call(CYPRESSCMD)
+
+# Step 2: Read display mem
+PKCMD.append('-GF' + sys.argv[1])
+subprocess.call(PKCMD)
+
+# Step 3: Read the DSP memory
+dev = usb.core.find(idVendor=VID, idProduct=PID)
+if dev is None:
+    raise ValueError('DSP EEPROM Device not found')
+dev.set_configuration()
+##cfg = dev.get_active_configuration()
+##intf = cfg[(0,0)]
+# send the request
+ret = dev.ctrl_transfer(0x40, 0xa4, 0, 0)
+ret = dev.ctrl_transfer(0xC0, 0xa4,0,0,1)
+ret = dev.ctrl_transfer(0x40, 0xb2, 0, 0, [0x00])
+ret = dev.ctrl_transfer(0xC0, 0xa9,0,0,1)
+# read eeprom
+print('Reading DSP EEPROM...')
+ret = dev.ctrl_transfer(0xC0, 0xa9,0,0,4096)
+
+if len(ret) == 4096:
+    with open(sys.argv[2], 'wb') as f:
+        f.write(ret)
+else:
+    raise ValueError('Read error: Invalid memory returned')
+print('Done.')
