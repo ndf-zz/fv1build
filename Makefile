@@ -123,7 +123,7 @@ dprog: $(DERVISHBANK)
 
 .PHONY: eprog
 eprog: $(TARGET)
-	$(DERVISHPROG) -v -n 4096 -o 0 -p 32 -t $(DERVISHTTY) -f $(DERVISHBANK) -c W
+	$(DERVISHPROG) -v -n 4096 -o 0 -p 32 -t $(DERVISHTTY) -f $(TARGET) -c W
 
 .PHONY: help
 help:

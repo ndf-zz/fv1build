@@ -22,7 +22,7 @@ name for the program. For example:
 	2_chorus.asm
 
 In each source file, additional optional text can be provided for Tiptop
-zDSP and gBiz uDervish devices by adding lines as follows:
+zDSP and gBiz Dervish devices by adding lines as follows:
 
 	; Program N : Program Name
 	; POT0 : Pot0 Function
