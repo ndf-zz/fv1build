@@ -65,7 +65,7 @@ BANKINFO3 = " <ndf@metarace.com.au>  "
 
 # FV-1 assembler and flags
 AS = asfv1
-ASFLAGS = -n -b
+ASFLAGS = -b
 
 # Helper scripts for extracting display texts
 ZDSPTXT = zdsptext
