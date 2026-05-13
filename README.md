@@ -1,6 +1,9 @@
 # fv1build
 Makefile and scripts for a FV1
 
+Archived: 2026-05-13
+Moved to: https://codeberg.org/ndf-zz/fv1build
+
 ## Contents
 
 Makefile	A blank fv1 build makefile
